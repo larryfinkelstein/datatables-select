@@ -21,11 +21,14 @@
         <upstream.version>1.1.0</upstream.version>
         <upstream.url>https://github.com/DataTables/Select/archive/${upstream.version}.zip</upstream.url>
         <destDir>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${upstream.version}</destDir>
-        <requirejs>
-            {
-                "paths": { "dataTables.select": "dataTables.select" }
-            }
-        </requirejs>
+		<requirejs>
+			{
+				"paths": { "dataTables.select": "dataTables.select" }
+			},
+			"shim": {
+				"datatables-select": ["jquery", "datatables"]
+			}
+		</requirejs>
     </properties>
 
     <developers>
@@ -51,6 +54,19 @@
         <tag>HEAD</tag>
     </scm>
     
+    <dependencies>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery</artifactId>
+            <version>[1.7.0,)</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>datatables</artifactId>
+            <version>[1.10.,)</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
