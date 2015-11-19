@@ -11,16 +11,17 @@
     <packaging>jar</packaging>
     <groupId>org.webjars</groupId>
     <artifactId>datatables-select</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>DataTables Select</name>
     <description>WebJar for DataTables Select</description>
     <url>http://webjars.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <upstream.version>1.1.0</upstream.version>
+        <upstream.version>1.0.1</upstream.version>
         <upstream.url>https://github.com/DataTables/Select/archive/${upstream.version}.zip</upstream.url>
-        <destDir>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${upstream.version}</destDir>
+        <destSubDir>META-INF/resources/webjars/${project.artifactId}/${upstream.version}</destSubDir>
+        <destDir>${project.build.outputDirectory}/${destSubDir}</destDir>
 		<requirejs>
 			{
 				"paths": { "dataTables.select": "dataTables.select" }
@@ -68,6 +69,16 @@
     </dependencies>
 
     <build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>nl.geodienstencentrum.maven</groupId>
+					<artifactId>sass-maven-plugin</artifactId>
+					<version>2.14</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
         <plugins>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -81,12 +92,73 @@
                                 <echo message="download archive"/>
                                 <get src="${upstream.url}" dest="${project.build.directory}/${project.artifactId}.zip"/>
                                 <echo message="unzip archive"/>
-                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}"/>
+                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}">
+                                	<patternset>
+                                		<exclude name="**/docs/**"/>
+                                		<exclude name="**/examples/**"/>
+                                		<exclude name="**/*.md"/>
+                                		<exclude name="**/make.sh"/>
+                                		<exclude name="**/License.txt"/>
+                                	</patternset>
+                                </unzip>
                                 <echo message="moving resources"/>
                                 <move todir="${destDir}">
-                                    <fileset dir="${project.build.directory}/Select-${upstream.version}" />
+                                    <fileset dir="${project.build.directory}/Select-${upstream.version}">
+                                    	<exclude name="**/*.scss"/>
+                                    </fileset>
                                 </move>
                             </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+				<groupId>nl.geodienstencentrum.maven</groupId>
+				<artifactId>sass-maven-plugin</artifactId>
+				<version>2.14</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>update-stylesheets</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+					<sassSourceDirectory>${project.build.directory}/Select-${upstream.version}/css</sassSourceDirectory>
+					<destination>${destDir}/css</destination>
+                </configuration>
+			</plugin>
+            <plugin>
+                <groupId>com.samaxes.maven</groupId>
+                <artifactId>minify-maven-plugin</artifactId>                   
+                <version>1.7.2</version>
+                <executions>
+                    <execution>
+                        <id>minify</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>minify</goal>
+                        </goals>
+                        <configuration>
+                            <charset>utf-8</charset>
+                            <jsEngine>CLOSURE</jsEngine>
+                            <skipMerge>true</skipMerge>
+                            <nosuffix>false</nosuffix>
+                            <webappSourceDir>${basedir}\target\classes</webappSourceDir>
+                            <webappTargetDir>${basedir}\target\classes</webappTargetDir>
+ 
+                            <cssSourceDir>${destSubDir}/css</cssSourceDir>
+                            <cssTargetDir>${destSubDir}/css</cssTargetDir>
+                            <cssSourceIncludes>
+                                <cssSourceInclude>*.css</cssSourceInclude>
+                            </cssSourceIncludes>
+ 
+                            <jsSourceDir>${destSubDir}/js</jsSourceDir>
+                            <jsTargetDir>${destSubDir}/js</jsTargetDir>
+                            <jsSourceIncludes>
+                                <jsSourceInclude>*.js</jsSourceInclude>
+                            </jsSourceIncludes>
                         </configuration>
                     </execution>
                 </executions>
@@ -96,6 +168,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.1</version>
             </plugin>
+            <!-- 
             <plugin>
                 <groupId>com.googlecode.todomap</groupId>
                 <artifactId>maven-jettygzip-plugin</artifactId>
@@ -113,6 +186,7 @@
                     </execution>
                 </executions>
             </plugin>
+             -->
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
